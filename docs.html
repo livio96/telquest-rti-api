@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TelQuest Inventory API — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-sidebar: #0b1220;
+    --bg-code: #0f172a;
+    --bg-code-soft: #1e293b;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --text-sidebar: #cbd5e1;
+    --text-sidebar-active: #ffffff;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --green: #16a34a;
+    --orange: #ea580c;
+    --red: #dc2626;
+    --purple: #9333ea;
+    --code-text: #e2e8f0;
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+
+  .layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+  /* ───── Sidebar ───── */
+  .sidebar {
+    background: var(--bg-sidebar);
+    color: var(--text-sidebar);
+    padding: 32px 24px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    color: #fff;
+  }
+  .sidebar-brand .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-weight: 700;
+    color: #fff;
+  }
+  .sidebar-brand h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .sidebar-brand .version {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .sidebar-section {
+    margin-top: 28px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    margin: 2px -10px;
+    border-radius: 6px;
+    color: var(--text-sidebar);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.12s, color 0.12s;
+  }
+  .sidebar-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .sidebar-link.active { background: rgba(59, 130, 246, 0.15); color: #fff; }
+  .sidebar-link .method {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 36px;
+    text-align: center;
+  }
+  .method.get { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
+  .method.post { background: rgba(234, 88, 12, 0.18); color: #fb923c; }
+
+  /* ───── Main ───── */
+  .main { padding: 56px 64px; max-width: 1280px; }
+
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 680px;
+  }
+  .hero-meta {
+    display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.gray { background: #f1f5f9; color: #475569; }
+
+  /* Section */
+  section { margin-bottom: 72px; scroll-margin-top: 24px; }
+  section h2 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+  }
+  section p { color: var(--text-muted); margin-bottom: 14px; }
+
+  /* Endpoint cards */
+  .endpoint {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+  }
+  .endpoint-method {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+  .endpoint-method.get { background: #dcfce7; color: #166534; }
+  .endpoint-method.post { background: #ffedd5; color: #9a3412; }
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .endpoint-auth {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .endpoint-body { padding: 24px; }
+  .endpoint-body p { color: var(--text-muted); }
+
+  /* Two-column endpoint layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-top: 20px;
+  }
+  @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* Param table */
+  .params {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  .params th, .params td {
+    text-align: left;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .params th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .params td.name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--accent);
+    width: 32%;
+  }
+  .params td.type {
+    font-size: 12px;
+    color: var(--text-muted);
+    width: 18%;
+  }
+  .params td.desc { font-size: 13px; color: var(--text-muted); }
+  .params td.desc strong { color: var(--text); }
+
+  /* Code tabs */
+  .code-block {
+    background: var(--bg-code);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  }
+  .code-tabs {
+    display: flex;
+    background: var(--bg-code-soft);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0 8px;
+  }
+  .code-tab {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.12s;
+  }
+  .code-tab:hover { color: #e2e8f0; }
+  .code-tab.active { color: #fff; border-bottom-color: #3b82f6; }
+  .code-panel { display: none; position: relative; }
+  .code-panel.active { display: block; }
+  .code-panel pre {
+    padding: 18px 20px;
+    overflow-x: auto;
+    color: var(--code-text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.12s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.12); }
+  .copy-btn.copied { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* Syntax highlighting */
+  .tok-str { color: #86efac; }
+  .tok-key { color: #93c5fd; }
+  .tok-num { color: #fcd34d; }
+  .tok-com { color: #64748b; font-style: italic; }
+  .tok-fn  { color: #c4b5fd; }
+  .tok-flag { color: #f9a8d4; }
+
+  /* API key bar */
+  .key-bar {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fff;
+    padding: 18px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+  }
+  .key-bar-icon {
+    width: 40px; height: 40px;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .key-bar-text { flex: 1; }
+  .key-bar-text .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  .key-bar-text .desc { font-size: 13px; color: #cbd5e1; }
+  .key-bar input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    width: 320px;
+    outline: none;
+    transition: border 0.12s, background 0.12s;
+  }
+  .key-bar input:focus { border-color: #3b82f6; background: rgba(255,255,255,0.12); }
+  .key-bar input::placeholder { color: #64748b; }
+
+  /* Inline code */
+  p code, li code, td code {
+    background: #f1f5f9;
+    color: #be185d;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+
+  /* Response example */
+  .response-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .response-status.ok { background: #dcfce7; color: #166534; }
+  .response-status.err { background: #fee2e2; color: #991b1b; }
+
+  ul.feature-list { list-style: none; margin: 14px 0; }
+  ul.feature-list li {
+    padding: 6px 0 6px 24px;
+    position: relative;
+    color: var(--text-muted);
+  }
+  ul.feature-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 18px 0;
+    font-size: 14px;
+    color: #1e3a8a;
+  }
+  .callout.warn { border-color: var(--orange); background: #fff7ed; color: #7c2d12; }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; }
+    .main { padding: 32px 24px; }
+    .hero h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ───── SIDEBAR ───── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">T</div>
+      <div>
+        <h1>TelQuest API</h1>
+        <div class="version">v1.0</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">Getting Started</div>
+    <a href="#introduction" class="sidebar-link">Introduction</a>
+    <a href="#authentication" class="sidebar-link">Authentication</a>
+    <a href="#base-url" class="sidebar-link">Base URL</a>
+    <a href="#errors" class="sidebar-link">Errors</a>
+
+    <div class="sidebar-section">Endpoints</div>
+    <a href="#health" class="sidebar-link"><span class="method get">GET</span> Health</a>
+    <a href="#list-inventory" class="sidebar-link"><span class="method get">GET</span> Inventory</a>
+    <a href="#single-part" class="sidebar-link"><span class="method get">GET</span> Single part</a>
+    <a href="#refresh" class="sidebar-link"><span class="method post">POST</span> Refresh cache</a>
+
+    <div class="sidebar-section">Reference</div>
+    <a href="#data-model" class="sidebar-link">Inventory item</a>
+    <a href="#caching" class="sidebar-link">Caching</a>
+    <a href="#cors" class="sidebar-link">CORS</a>
+  </aside>
+
+  <!-- ───── MAIN ───── -->
+  <main class="main">
+
+    <header class="hero">
+      <h1>TelQuest Inventory API</h1>
+      <p>Programmatic access to TelQuest's real-time and inbound inventory. Query Cisco, Avaya, Polycom, and other manufacturer parts straight from NetSuite, with the same data shown on telquestintl.com.</p>
+      <div class="hero-meta">
+        <span class="badge">REST · JSON</span>
+        <span class="badge gray">v1.0</span>
+        <span class="badge gray">5-minute cache</span>
+      </div>
+    </header>
+
+    <!-- ───── KEY BAR ───── -->
+    <div class="key-bar">
+      <div class="key-bar-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+      </div>
+      <div class="key-bar-text">
+        <div class="label">Your API Key</div>
+        <div class="desc">Paste your key here — every <code style="color:#fca5a5; background:rgba(255,255,255,0.05)">curl</code> example below updates automatically.</div>
+      </div>
+      <input id="apiKeyInput" type="text" placeholder="paste your X-API-Key here" />
+    </div>
+
+    <!-- ───── INTRODUCTION ───── -->
+    <section id="introduction">
+      <h2>Introduction</h2>
+      <p>The TelQuest Inventory API is a JSON REST API. Every endpoint accepts and returns standard <code>application/json</code>. All endpoints (except <code>/health</code>) require an API key passed as the <code>X-API-Key</code> HTTP header.</p>
+
+      <ul class="feature-list">
+        <li>Real-time inventory pulled from NetSuite (cached for 5 minutes per request)</li>
+        <li>Inbound inventory sourced from the daily TelQuest CSV feed</li>
+        <li>Filter by part number, manufacturer, condition, price, and stock status</li>
+        <li>Pagination via <code>limit</code> and <code>offset</code></li>
+        <li>Interactive Swagger spec at <a href="https://telquest-rti-api.onrender.com/__docs__/" target="_blank">/__docs__/</a></li>
+      </ul>
+    </section>
+
+    <!-- ───── BASE URL ───── -->
+    <section id="base-url">
+      <h2>Base URL</h2>
+      <p>All API requests are made to:</p>
+      <div class="code-block">
+        <div class="code-panel active">
+          <pre><span class="tok-str">https://telquest-rti-api.onrender.com</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── AUTHENTICATION ───── -->
+    <section id="authentication">
+      <h2>Authentication</h2>
+      <p>Every request (except <code>/health</code>) must include your API key as the <code>X-API-Key</code> header. Requests missing or with an invalid key receive a <code>401 Unauthorized</code> response.</p>
+
+      <div class="callout warn">
+        <strong>Treat your key like a password.</strong> Don't commit it to git, don't share it in chat. If a key is compromised, contact TelQuest to rotate it.
+      </div>
+
+      <h3>Example request</h3>
+      <div class="code-block">
+        <div class="code-tabs">
+          <button class="code-tab active" data-target="auth-curl">cURL</button>
+          <button class="code-tab" data-target="auth-py">Python</button>
+          <button class="code-tab" data-target="auth-js">JavaScript</button>
+          <button class="code-tab" data-target="auth-r">R</button>
+        </div>
+        <div class="code-panel active" id="auth-curl">
+          <button class="copy-btn">Copy</button>
+          <pre><span class="tok-fn">curl</span> <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory?limit=5"</span></pre>
+        </div>
+        <div class="code-panel" id="auth-py">
+          <button class="copy-btn">Copy</button>
+          <pre><span class="tok-key">import</span> requests
+
+headers = {<span class="tok-str">"X-API-Key"</span>: <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span>}
+r = requests.get(
+    <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory"</span>,
+    headers=headers,
+    params={<span class="tok-str">"limit"</span>: <span class="tok-num">5</span>},
+)
+print(r.json())</pre>
+        </div>
+        <div class="code-panel" id="auth-js">
+          <button class="copy-btn">Copy</button>
+          <pre><span class="tok-key">const</span> res = <span class="tok-key">await</span> <span class="tok-fn">fetch</span>(
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory?limit=5"</span>,
+  { headers: { <span class="tok-str">"X-API-Key"</span>: <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span> } }
+);
+<span class="tok-key">const</span> data = <span class="tok-key">await</span> res.<span class="tok-fn">json</span>();
+console.<span class="tok-fn">log</span>(data);</pre>
+        </div>
+        <div class="code-panel" id="auth-r">
+          <button class="copy-btn">Copy</button>
+          <pre><span class="tok-fn">library</span>(httr)
+
+res <- <span class="tok-fn">GET</span>(
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory"</span>,
+  query = <span class="tok-fn">list</span>(limit = <span class="tok-num">5</span>),
+  <span class="tok-fn">add_headers</span>(<span class="tok-str">"X-API-Key"</span> = <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span>)
+)
+<span class="tok-fn">content</span>(res, <span class="tok-str">"parsed"</span>)</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── ERRORS ───── -->
+    <section id="errors">
+      <h2>Errors</h2>
+      <p>The API uses standard HTTP status codes:</p>
+      <table class="params">
+        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="name">200</td><td class="desc">Success.</td></tr>
+          <tr><td class="name">401</td><td class="desc">Missing or invalid <code>X-API-Key</code> header.</td></tr>
+          <tr><td class="name">404</td><td class="desc">Endpoint or part number not found.</td></tr>
+          <tr><td class="name">500</td><td class="desc">Server error — most often the upstream NetSuite call failed. Retry after a few seconds.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Error response shape</h3>
+      <div class="code-block">
+        <div class="code-panel active">
+          <pre>{
+  <span class="tok-key">"error"</span>: <span class="tok-str">"Missing or invalid X-API-Key header"</span>
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ ENDPOINT: HEALTH ═══════ -->
+    <section id="health">
+      <h2>Health check</h2>
+      <p>Returns server status. Used by uptime monitors and load balancers. <strong>No authentication required.</strong></p>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/health</span>
+          <span class="endpoint-auth">🔓 No auth</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="two-col">
+            <div>
+              <h3 style="margin-top:0">Description</h3>
+              <p>Lightweight liveness probe. Returns immediately without contacting NetSuite or any other dependency. Use this to verify the API is reachable.</p>
+
+              <h3>Response fields</h3>
+              <table class="params">
+                <tbody>
+                  <tr><td class="name">status</td><td class="type">string</td><td class="desc">Always <code>"ok"</code> when reachable.</td></tr>
+                  <tr><td class="name">time</td><td class="type">string</td><td class="desc">Server timestamp, ISO 8601 with timezone offset.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div class="code-block">
+                <div class="code-tabs">
+                  <button class="code-tab active" data-target="health-curl">Request</button>
+                  <button class="code-tab" data-target="health-resp">Response</button>
+                </div>
+                <div class="code-panel active" id="health-curl">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-fn">curl</span> <span class="tok-str">"https://telquest-rti-api.onrender.com/health"</span></pre>
+                </div>
+                <div class="code-panel" id="health-resp">
+                  <div style="padding: 14px 20px 0">
+                    <span class="response-status ok">200 OK</span>
+                  </div>
+                  <pre>{
+  <span class="tok-key">"status"</span>: <span class="tok-str">"ok"</span>,
+  <span class="tok-key">"time"</span>: <span class="tok-str">"2026-05-15T15:39:41+0000"</span>
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ ENDPOINT: LIST INVENTORY ═══════ -->
+    <section id="list-inventory">
+      <h2>List inventory</h2>
+      <p>The main endpoint. Returns inventory items matching optional filters, with pagination. Combines real-time NetSuite data with the inbound CSV feed.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/inventory</span>
+          <span class="endpoint-auth">🔒 Requires X-API-Key</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="two-col">
+            <div>
+              <h3 style="margin-top:0">Query parameters</h3>
+              <p>All parameters are optional. Filters can be combined.</p>
+              <table class="params">
+                <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td class="name">part_number</td><td class="type">string</td><td class="desc">Substring match, case-insensitive. e.g. <code>WS-C2960</code>.</td></tr>
+                  <tr><td class="name">manufacturer</td><td class="type">string</td><td class="desc">Exact match, case-insensitive. e.g. <code>Cisco</code>, <code>Polycom</code>.</td></tr>
+                  <tr><td class="name">condition</td><td class="type">string</td><td class="desc">Exact match, case-insensitive. One of: <code>New</code>, <code>Like New</code>, <code>Refresh</code>, <code>Recertified</code>, <code>New Open Box</code>.</td></tr>
+                  <tr><td class="name">in_stock_only</td><td class="type">boolean</td><td class="desc"><code>true</code> excludes inbound items (real-time only).</td></tr>
+                  <tr><td class="name">on_sale_only</td><td class="type">boolean</td><td class="desc"><code>true</code> returns only items with an active promotion.</td></tr>
+                  <tr><td class="name">min_price</td><td class="type">number</td><td class="desc">Minimum price (USD). Items with non-numeric prices are excluded.</td></tr>
+                  <tr><td class="name">max_price</td><td class="type">number</td><td class="desc">Maximum price (USD).</td></tr>
+                  <tr><td class="name">limit</td><td class="type">integer</td><td class="desc">Max rows to return. Default <code>1000</code>.</td></tr>
+                  <tr><td class="name">offset</td><td class="type">integer</td><td class="desc">Rows to skip for pagination. Default <code>0</code>.</td></tr>
+                </tbody>
+              </table>
+
+              <h3>Response fields</h3>
+              <table class="params">
+                <tbody>
+                  <tr><td class="name">count</td><td class="type">integer</td><td class="desc">Number of items in this response (≤ <code>limit</code>).</td></tr>
+                  <tr><td class="name">total</td><td class="type">integer</td><td class="desc">Total matching items before pagination.</td></tr>
+                  <tr><td class="name">fetched_at</td><td class="type">string</td><td class="desc">When the cached data was last refreshed.</td></tr>
+                  <tr><td class="name">items</td><td class="type">array</td><td class="desc">Array of <a href="#data-model">inventory item</a> objects.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div class="code-block">
+                <div class="code-tabs">
+                  <button class="code-tab active" data-target="inv-curl">cURL</button>
+                  <button class="code-tab" data-target="inv-py">Python</button>
+                  <button class="code-tab" data-target="inv-js">JavaScript</button>
+                  <button class="code-tab" data-target="inv-r">R</button>
+                  <button class="code-tab" data-target="inv-resp">Response</button>
+                </div>
+                <div class="code-panel active" id="inv-curl">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-fn">curl</span> <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory?manufacturer=Cisco&in_stock_only=true&limit=10"</span></pre>
+                </div>
+                <div class="code-panel" id="inv-py">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-key">import</span> requests
+
+resp = requests.get(
+    <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory"</span>,
+    headers={<span class="tok-str">"X-API-Key"</span>: <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span>},
+    params={
+        <span class="tok-str">"manufacturer"</span>: <span class="tok-str">"Cisco"</span>,
+        <span class="tok-str">"in_stock_only"</span>: <span class="tok-str">"true"</span>,
+        <span class="tok-str">"limit"</span>: <span class="tok-num">10</span>,
+    },
+)
+data = resp.<span class="tok-fn">json</span>()
+<span class="tok-key">for</span> item <span class="tok-key">in</span> data[<span class="tok-str">"items"</span>]:
+    print(item[<span class="tok-str">"part_number"</span>], item[<span class="tok-str">"price"</span>])</pre>
+                </div>
+                <div class="code-panel" id="inv-js">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-key">const</span> params = <span class="tok-key">new</span> <span class="tok-fn">URLSearchParams</span>({
+  manufacturer: <span class="tok-str">"Cisco"</span>,
+  in_stock_only: <span class="tok-str">"true"</span>,
+  limit: <span class="tok-num">10</span>,
+});
+
+<span class="tok-key">const</span> res = <span class="tok-key">await</span> <span class="tok-fn">fetch</span>(
+  <span class="tok-str">`https://telquest-rti-api.onrender.com/inventory?${params}`</span>,
+  { headers: { <span class="tok-str">"X-API-Key"</span>: <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span> } }
+);
+<span class="tok-key">const</span> { items } = <span class="tok-key">await</span> res.<span class="tok-fn">json</span>();</pre>
+                </div>
+                <div class="code-panel" id="inv-r">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-fn">library</span>(httr)
+
+res <- <span class="tok-fn">GET</span>(
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory"</span>,
+  query = <span class="tok-fn">list</span>(
+    manufacturer = <span class="tok-str">"Cisco"</span>,
+    in_stock_only = <span class="tok-str">"true"</span>,
+    limit = <span class="tok-num">10</span>
+  ),
+  <span class="tok-fn">add_headers</span>(<span class="tok-str">"X-API-Key"</span> = <span class="tok-str">"<span class="api-key">YOUR_API_KEY</span>"</span>)
+)
+items <- <span class="tok-fn">content</span>(res, <span class="tok-str">"parsed"</span>)$items</pre>
+                </div>
+                <div class="code-panel" id="inv-resp">
+                  <div style="padding: 14px 20px 0">
+                    <span class="response-status ok">200 OK</span>
+                  </div>
+                  <pre>{
+  <span class="tok-key">"count"</span>: <span class="tok-num">2</span>,
+  <span class="tok-key">"total"</span>: <span class="tok-num">847</span>,
+  <span class="tok-key">"fetched_at"</span>: <span class="tok-str">"2026-05-15T15:40:12+0000"</span>,
+  <span class="tok-key">"items"</span>: [
+    {
+      <span class="tok-key">"part_number"</span>: <span class="tok-str">"WS-C2960-24TC-L"</span>,
+      <span class="tok-key">"description"</span>: <span class="tok-str">"Catalyst 2960 24-port switch"</span>,
+      <span class="tok-key">"manufacturer"</span>: <span class="tok-str">"Cisco"</span>,
+      <span class="tok-key">"condition"</span>: <span class="tok-str">"Refresh"</span>,
+      <span class="tok-key">"quantity"</span>: <span class="tok-num">12</span>,
+      <span class="tok-key">"price"</span>: <span class="tok-str">"$185"</span>,
+      <span class="tok-key">"link"</span>: <span class="tok-str">"https://www.telquestintl.com/ws-c2960-24tc-l"</span>,
+      <span class="tok-key">"promotion_exp_date"</span>: <span class="tok-key">null</span>,
+      <span class="tok-key">"inventory_type"</span>: <span class="tok-str">"real-time"</span>,
+      <span class="tok-key">"is_inbound"</span>: <span class="tok-key">false</span>,
+      <span class="tok-key">"on_sale"</span>: <span class="tok-key">false</span>,
+      <span class="tok-key">"price_numeric"</span>: <span class="tok-num">185</span>
+    },
+    {
+      <span class="tok-key">"part_number"</span>: <span class="tok-str">"WS-C3750G-24T-S"</span>,
+      <span class="tok-key">"description"</span>: <span class="tok-str">"Catalyst 3750G 24-port gigabit"</span>,
+      <span class="tok-key">"manufacturer"</span>: <span class="tok-str">"Cisco"</span>,
+      <span class="tok-key">"condition"</span>: <span class="tok-str">"Recertified"</span>,
+      <span class="tok-key">"quantity"</span>: <span class="tok-num">5</span>,
+      <span class="tok-key">"price"</span>: <span class="tok-str">"$340"</span>,
+      <span class="tok-key">"link"</span>: <span class="tok-str">"https://www.telquestintl.com/ws-c3750g-24t-s"</span>,
+      <span class="tok-key">"inventory_type"</span>: <span class="tok-str">"real-time"</span>,
+      <span class="tok-key">"is_inbound"</span>: <span class="tok-key">false</span>,
+      <span class="tok-key">"on_sale"</span>: <span class="tok-key">true</span>,
+      <span class="tok-key">"price_numeric"</span>: <span class="tok-num">340</span>
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Pagination</h3>
+      <p>Use <code>limit</code> and <code>offset</code> together to page through results. The <code>total</code> field in every response tells you how many rows match before pagination, so you can compute total pages.</p>
+
+      <div class="code-block">
+        <div class="code-panel active">
+          <button class="copy-btn">Copy</button>
+          <pre><span class="tok-com"># Page 1: items 0–99</span>
+<span class="tok-fn">curl</span> <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory?limit=100&offset=0"</span>
+
+<span class="tok-com"># Page 2: items 100–199</span>
+<span class="tok-fn">curl</span> <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory?limit=100&offset=100"</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ ENDPOINT: SINGLE PART ═══════ -->
+    <section id="single-part">
+      <h2>Single part lookup</h2>
+      <p>Returns a single inventory item matching an exact part number (case-insensitive). Use this when you already know the SKU.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/inventory/{part_number}</span>
+          <span class="endpoint-auth">🔒 Requires X-API-Key</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="two-col">
+            <div>
+              <h3 style="margin-top:0">Path parameter</h3>
+              <table class="params">
+                <tbody>
+                  <tr><td class="name">part_number</td><td class="type">string</td><td class="desc">Exact part number, case-insensitive. URL-encode if it contains special characters.</td></tr>
+                </tbody>
+              </table>
+
+              <h3>Response</h3>
+              <p>Returns <code>{ "found": true, "items": [...] }</code> if matched, or <code>{ "found": false, "part_number": "..." }</code> if no match.</p>
+            </div>
+            <div>
+              <div class="code-block">
+                <div class="code-tabs">
+                  <button class="code-tab active" data-target="part-curl">cURL</button>
+                  <button class="code-tab" data-target="part-resp">Found</button>
+                  <button class="code-tab" data-target="part-404">Not found</button>
+                </div>
+                <div class="code-panel active" id="part-curl">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-fn">curl</span> <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/inventory/WS-C2960-24TC-L"</span></pre>
+                </div>
+                <div class="code-panel" id="part-resp">
+                  <div style="padding: 14px 20px 0">
+                    <span class="response-status ok">200 OK</span>
+                  </div>
+                  <pre>{
+  <span class="tok-key">"found"</span>: <span class="tok-key">true</span>,
+  <span class="tok-key">"items"</span>: [
+    {
+      <span class="tok-key">"part_number"</span>: <span class="tok-str">"WS-C2960-24TC-L"</span>,
+      <span class="tok-key">"description"</span>: <span class="tok-str">"Catalyst 2960 24-port switch"</span>,
+      <span class="tok-key">"manufacturer"</span>: <span class="tok-str">"Cisco"</span>,
+      <span class="tok-key">"condition"</span>: <span class="tok-str">"Refresh"</span>,
+      <span class="tok-key">"quantity"</span>: <span class="tok-num">12</span>,
+      <span class="tok-key">"price"</span>: <span class="tok-str">"$185"</span>,
+      <span class="tok-key">"price_numeric"</span>: <span class="tok-num">185</span>,
+      <span class="tok-key">"on_sale"</span>: <span class="tok-key">false</span>
+    }
+  ]
+}</pre>
+                </div>
+                <div class="code-panel" id="part-404">
+                  <div style="padding: 14px 20px 0">
+                    <span class="response-status ok">200 OK</span>
+                  </div>
+                  <pre>{
+  <span class="tok-key">"found"</span>: <span class="tok-key">false</span>,
+  <span class="tok-key">"part_number"</span>: <span class="tok-str">"NOT-A-REAL-SKU"</span>
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ ENDPOINT: REFRESH ═══════ -->
+    <section id="refresh">
+      <h2>Refresh cache</h2>
+      <p>Forces an immediate refresh of the inventory cache from NetSuite. Use sparingly — the cache automatically refreshes every 5 minutes anyway. Intended for situations when you've just updated something in NetSuite and need it visible immediately.</p>
+
+      <div class="endpoint">
+        <div class="endpoint-header">
+          <span class="endpoint-method post">POST</span>
+          <span class="endpoint-path">/refresh</span>
+          <span class="endpoint-auth">🔒 Requires X-API-Key</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="two-col">
+            <div>
+              <h3 style="margin-top:0">Description</h3>
+              <p>Triggers a fresh pull from NetSuite + the inbound CSV feed, replacing the cached data. The response contains the new <code>refreshed_at</code> timestamp and the row count.</p>
+
+              <div class="callout warn">
+                <strong>Cost.</strong> Each call hits NetSuite directly, which is slower (1–3 seconds) and consumes a SuiteQL query against your governance limits. Don't call this on every page load.
+              </div>
+            </div>
+            <div>
+              <div class="code-block">
+                <div class="code-tabs">
+                  <button class="code-tab active" data-target="refresh-curl">Request</button>
+                  <button class="code-tab" data-target="refresh-resp">Response</button>
+                </div>
+                <div class="code-panel active" id="refresh-curl">
+                  <button class="copy-btn">Copy</button>
+                  <pre><span class="tok-fn">curl</span> <span class="tok-flag">-X</span> POST <span class="tok-flag">-H</span> <span class="tok-str">"X-API-Key: <span class="api-key">YOUR_API_KEY</span>"</span> \
+  <span class="tok-str">"https://telquest-rti-api.onrender.com/refresh"</span></pre>
+                </div>
+                <div class="code-panel" id="refresh-resp">
+                  <div style="padding: 14px 20px 0">
+                    <span class="response-status ok">200 OK</span>
+                  </div>
+                  <pre>{
+  <span class="tok-key">"refreshed_at"</span>: <span class="tok-str">"2026-05-15T15:42:08+0000"</span>,
+  <span class="tok-key">"rows"</span>: <span class="tok-num">3214</span>
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ DATA MODEL ═══════ -->
+    <section id="data-model">
+      <h2>The inventory item object</h2>
+      <p>Every item returned by the API has the following fields:</p>
+      <table class="params">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="name">part_number</td><td class="type">string</td><td class="desc">Manufacturer SKU. Primary identifier.</td></tr>
+          <tr><td class="name">description</td><td class="type">string</td><td class="desc">Human-readable product description.</td></tr>
+          <tr><td class="name">manufacturer</td><td class="type">string</td><td class="desc">Brand name (Cisco, Polycom, Avaya, etc.).</td></tr>
+          <tr><td class="name">condition</td><td class="type">string</td><td class="desc">Condition grade. One of: <code>New</code>, <code>Like New</code>, <code>Refresh</code>, <code>Recertified</code>, <code>New Open Box</code>.</td></tr>
+          <tr><td class="name">quantity</td><td class="type">integer</td><td class="desc">Available units. Capped at <code>250</code>; values above are reported as <code>250</code>.</td></tr>
+          <tr><td class="name">price</td><td class="type">string</td><td class="desc">Display price as a string with currency prefix, e.g. <code>"$185"</code>. May be <code>"Call"</code> for inbound items without pricing.</td></tr>
+          <tr><td class="name">price_numeric</td><td class="type">number</td><td class="desc">Numeric price for filtering and sorting. <code>null</code> if non-numeric.</td></tr>
+          <tr><td class="name">link</td><td class="type">string</td><td class="desc">Public product page on telquestintl.com.</td></tr>
+          <tr><td class="name">promotion_exp_date</td><td class="type">string</td><td class="desc">ISO date when the current promotion expires, or <code>null</code>.</td></tr>
+          <tr><td class="name">inventory_type</td><td class="type">string</td><td class="desc"><code>"real-time"</code> for ready-to-ship NetSuite inventory; <code>"inbound"</code> for the daily CSV feed.</td></tr>
+          <tr><td class="name">is_inbound</td><td class="type">boolean</td><td class="desc"><code>true</code> if the item is an inbound (not yet received) entry.</td></tr>
+          <tr><td class="name">on_sale</td><td class="type">boolean</td><td class="desc"><code>true</code> if a promotion is currently active.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ═══════ CACHING ═══════ -->
+    <section id="caching">
+      <h2>Caching</h2>
+      <p>To keep response times fast and limit pressure on NetSuite, the API caches the full inventory dataset for <strong>5 minutes</strong>. The first request after expiry triggers a refresh; subsequent requests within the window return cached data.</p>
+
+      <ul class="feature-list">
+        <li>Every response includes a <code>fetched_at</code> field showing cache age.</li>
+        <li>Most queries return in under 200 ms (cache hit).</li>
+        <li>Cache misses take 1–3 seconds (NetSuite query latency).</li>
+        <li>To force an immediate refresh, call <a href="#refresh"><code>POST /refresh</code></a>.</li>
+      </ul>
+    </section>
+
+    <!-- ═══════ CORS ═══════ -->
+    <section id="cors">
+      <h2>CORS</h2>
+      <p>The API sets <code>Access-Control-Allow-Origin: *</code>, so you can call it directly from a browser-based JavaScript app. The <code>X-API-Key</code> header is allowed.</p>
+
+      <div class="callout warn">
+        <strong>Don't ship your API key in browser code.</strong> A key embedded in client-side JavaScript is visible to anyone viewing source. For browser apps, proxy through your own backend that holds the key as a server-side secret.
+      </div>
+    </section>
+
+    <footer>
+      <p>TelQuest Inventory API · Documentation v1.0 · Need help? Email <a href="mailto:website@telquestintl.com">website@telquestintl.com</a></p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.code-tabs').forEach(tabGroup => {
+    const tabs = tabGroup.querySelectorAll('.code-tab');
+    const block = tabGroup.parentElement;
+    const panels = block.querySelectorAll('.code-panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        block.querySelector('#' + tab.dataset.target).classList.add('active');
+      });
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pre = btn.parentElement.querySelector('pre');
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+  });
+
+  // API-key live replacement
+  const keyInput = document.getElementById('apiKeyInput');
+  const placeholders = document.querySelectorAll('.api-key');
+  const stored = localStorage.getItem('tqApiKey');
+  if (stored) {
+    keyInput.value = stored;
+    placeholders.forEach(el => el.textContent = stored);
+  }
+  keyInput.addEventListener('input', e => {
+    const v = e.target.value || 'YOUR_API_KEY';
+    placeholders.forEach(el => el.textContent = v);
+    if (e.target.value) localStorage.setItem('tqApiKey', e.target.value);
+    else localStorage.removeItem('tqApiKey');
+  });
+
+  // Sidebar active link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

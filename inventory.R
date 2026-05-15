@@ -161,11 +161,21 @@ fetch_combined_inventory <- function() {
 
   # Compute on-sale flag
   today <- Sys.Date()
+  parse_date_safe <- function(s) {
+    s <- as.character(s)
+    if (is.null(s) || length(s) == 0 || is.na(s) || s == "" ||
+        tolower(s) == "null") return(NA)
+    for (fmt in c("%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%Y/%m/%d",
+                  "%m-%d-%Y", "%d-%m-%Y", "%Y-%m-%dT%H:%M:%S")) {
+      d <- suppressWarnings(as.Date(s, format = fmt))
+      if (!is.na(d)) return(d)
+    }
+    NA
+  }
   combined$on_sale <- vapply(seq_len(nrow(combined)), function(i) {
     if (combined$is_inbound[i]) return(FALSE)
     d <- combined$promotion_exp_date[i]
-    if (is.null(d) || is.na(d) || d == "" || tolower(d) == "null") return(FALSE)
-    parsed <- suppressWarnings(as.Date(as.character(d)))
+    parsed <- parse_date_safe(d)
     !is.na(parsed) && parsed >= today
   }, logical(1))
 
